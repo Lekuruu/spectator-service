@@ -98,6 +98,7 @@ def main():
 
     session.game.run()
 
+    # Remove player id from spectating list, after game closes
     if session.manager.spectating:
         session.redis.lrem(
             "spectating", 1,

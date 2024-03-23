@@ -98,6 +98,7 @@ class Score:
         )
 
     def submit(self, replay_file: bytes) -> None:
+        """Submit the score data to the queue, and store the replay file in cache"""
         session.queue.submit(
             "score",
             checksum=self.checksum,
