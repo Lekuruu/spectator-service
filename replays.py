@@ -104,7 +104,7 @@ class Replay:
     def create(self) -> Optional[Tuple[Score, bytes]]:
         self.logger.info("Creating replay...")
 
-        if len(self.frames) <= 450:
+        if len(self.frames) <= 250:
             self.logger.warning(
                 f"Replay save failed: Replay too short ({len(self.frames)})"
             )

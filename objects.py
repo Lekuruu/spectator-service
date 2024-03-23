@@ -146,5 +146,5 @@ class Score:
         session.redis.set(
             f'replays:{self.checksum}',
             replay_file,
-            ex=60 * 60 * 24
+            ex=60 * 60 * 96
         )
