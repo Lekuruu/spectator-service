@@ -74,9 +74,72 @@ def stats_update(player: Player):
     if player.status.action in (StatusAction.Playing, StatusAction.Multiplaying):
         session.manager.current_status = copy(player.status)
 
+@session.game.tasks.register()
+def subscribe():
+    """Start listening to the api pubsub channel"""
+    session.api_queue.channel.subscribe("api")
+    session.api_queue.logger.info('Listening to pubsub channel...')
+
+@session.api_queue.register("stats_request")
+def stats_request(server: str, player_id: int):
+    """Got stats request from api queue"""
+    if server != session.game.server:
+        return
+
+    session.game.bancho.request_stats([player_id])
+
+@session.game.tasks.register(seconds=1, loop=True)
+def event_listener():
+    if not (message := session.api_queue.channel.get_message()):
+        return
+
+    if message["data"] == 1:
+        return
+
+    name, args, kwargs = eval(message["data"])
+
+    if name not in session.api_queue.events:
+        return
+
+    session.api_queue.logger.info(
+        f'Got event for "{name}" with {args} and {kwargs}'
+    )
+
+    session.api_queue.events[name](*args, **kwargs)
+
 @session.game.tasks.register(seconds=10, loop=True)
 def spectator_controller():
-    if session.manager.spectating:
+    """Select a player to spectate, and update their stats"""
+    if not session.manager.spectating:
+        # Get spectating list
+        spectating = {
+            int(id)
+            for id in session.redis.lrange("spectating", 0, -1)
+        }
+
+        # Get highest ranked player available
+        players = [
+            p for p in session.game.bancho.players
+            if (p.rank != 0 and p.rank < 1000) and
+            (p.id not in spectating) and
+            (p.status.action != StatusAction.Afk)
+        ]
+        players.sort(key=lambda x: x.rank)
+        player = players[0]
+
+        # Add player to spectating list
+        session.redis.lpush("spectating", str(player.id))
+        session.logger.info(f"Spectating {player}")
+
+        session.game.bancho.start_spectating(player)
+        session.logger.info(f"{player} is {player.status}")
+
+        if player.status.action == StatusAction.Afk:
+            # Player is afk, choose another player
+            session.redis.lrem("spectating", 1, str(player.id))
+            session.game.bancho.stop_spectating()
+
+    else:
         # We are already spectating someone
         if not session.game.bancho.connected:
             # The client disconnected from bancho
@@ -88,32 +151,3 @@ def spectator_controller():
             return
 
         session.manager.spectating.request_stats()
-        return
-
-    # Get spectating list
-    spectating = {
-        int(id)
-        for id in session.redis.lrange("spectating", 0, -1)
-    }
-
-    # Get highest ranked player available
-    players = [
-        p for p in session.game.bancho.players
-        if (p.rank != 0 and p.rank < 1000) and
-           (p.id not in spectating) and
-           (p.status.action != StatusAction.Afk)
-    ]
-    players.sort(key=lambda x: x.rank)
-    player = players[0]
-
-    # Add player to spectating list
-    session.redis.lpush("spectating", str(player.id))
-    session.logger.info(f"Spectating {player}")
-
-    session.game.bancho.start_spectating(player)
-    session.logger.info(f"{player} is {player.status}")
-
-    if player.status.action == StatusAction.Afk:
-        # Player is afk, choose another player
-        session.redis.lrem("spectating", 1, str(player.id))
-        session.game.bancho.stop_spectating()
