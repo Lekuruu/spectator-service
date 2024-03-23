@@ -106,7 +106,7 @@ class Score:
             player=json.dumps({
                 "id": self.player.id,
                 "name": self.player.name,
-                "country": self.player.country_code,
+                "country": self.player.country,
                 "status": {
                     "action": self.player.status.action.value,
                     "text": self.player.status.text,

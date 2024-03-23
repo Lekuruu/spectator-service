@@ -28,7 +28,7 @@ def stats_update(player: Player):
     user_dict = {
         "id": player.id,
         "name": player.name,
-        "country": player.country_code,
+        "country": player.country,
         "server": session.game.server,
         "stats": {
             "rscore": player.rscore,
