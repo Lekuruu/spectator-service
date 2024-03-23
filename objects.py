@@ -138,6 +138,7 @@ class Score:
                 "accuracy": self.accuracy,
                 "grade": self.grade,
                 "passed": self.passed,
+                "length": round(len(self.frames) / 30),
                 "filename": self.filename,
                 "filename_safe": self.filename_safe
             })
