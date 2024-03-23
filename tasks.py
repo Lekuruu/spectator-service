@@ -18,7 +18,7 @@ def frames(action, frames, score_frame, extra):
 @session.game.events.register(ServerPackets.USER_LOGOUT)
 def user_logout(player: Player):
     session.redis.delete(f"stats:{player.id}")
-    session.redis.lrem("spectating", 1, str(player.id))
+    session.redis.lrem(f"spectating:{session.game.server}", 1, player.id)
 
 @session.game.events.register(ServerPackets.USER_STATS)
 def stats_update(player: Player):
@@ -68,7 +68,7 @@ def stats_update(player: Player):
     if player.status.action == StatusAction.Afk:
         session.logger.info(f"{player} is {player.status}")
         session.game.bancho.stop_spectating()
-        session.redis.lrem("spectating", 1, str(player.id))
+        session.redis.lrem(f"spectating:{session.game.server}", 1, player.id)
         return
 
     if player.status.action in (StatusAction.Playing, StatusAction.Multiplaying):
@@ -113,8 +113,9 @@ def spectator_controller():
     if not session.manager.spectating:
         # Get spectating list
         spectating = {
-            int(id)
-            for id in session.redis.lrange("spectating", 0, -1)
+            int(id) for id in session.redis.lrange(
+                f"spectating:{session.game.server}", 0, -1
+            )
         }
 
         # Get highest ranked player available
@@ -128,7 +129,7 @@ def spectator_controller():
         player = players[0]
 
         # Add player to spectating list
-        session.redis.lpush("spectating", str(player.id))
+        session.redis.lpush(f"spectating:{session.game.server}", player.id)
         session.logger.info(f"Spectating {player}")
 
         session.game.bancho.start_spectating(player)
@@ -136,7 +137,7 @@ def spectator_controller():
 
         if player.status.action == StatusAction.Afk:
             # Player is afk, choose another player
-            session.redis.lrem("spectating", 1, str(player.id))
+            session.redis.lrem(f"spectating:{session.game.server}", 1, player.id)
             session.game.bancho.stop_spectating()
 
     else:
@@ -144,8 +145,8 @@ def spectator_controller():
         if not session.game.bancho.connected:
             # The client disconnected from bancho
             session.redis.lrem(
-                "spectating", 1,
-                str(session.manager.spectating.id)
+                f"spectating:{session.game.server}", 1,
+                session.manager.spectating.id
             )
             session.game.bancho.spectating = None
             return

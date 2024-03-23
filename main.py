@@ -106,8 +106,8 @@ def main():
     # Remove player id from spectating list, after game closes
     if session.manager.spectating:
         session.redis.lrem(
-            "spectating", 1,
-            str(session.manager.spectating.id)
+            f"spectating:{session.game.server}", 1,
+            session.manager.spectating.id
         )
 
 if __name__ == "__main__":
