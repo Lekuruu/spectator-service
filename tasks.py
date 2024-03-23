@@ -25,29 +25,36 @@ def stats_update(player: Player):
     if not player:
         return
 
+    user_dict = {
+        "id": player.id,
+        "name": player.name,
+        "country": player.country_code,
+        "stats": {
+            "rscore": player.rscore,
+            "tscore": player.tscore,
+            "acc": player.acc,
+            "pp": player.pp,
+            "playcount": player.playcount,
+            "rank": player.rank,
+        },
+        "status": {
+            "action": player.status.action.value,
+            "text": player.status.text,
+            "checksum": player.status.checksum,
+            "mods": player.status.mods.value,
+            "mode": player.status.mode.value,
+            "beatmap_id": player.status.beatmap_id,
+        }
+    }
+
     session.redis.set(
         f"player:{player.id}",
-        json.dumps({
-            "id": player.id,
-            "name": player.name,
-            "country": player.country_code,
-            "stats": {
-                "rscore": player.rscore,
-                "tscore": player.tscore,
-                "acc": player.acc,
-                "pp": player.pp,
-                "playcount": player.playcount,
-                "rank": player.rank,
-            },
-            "status": {
-                "action": player.status.action.value,
-                "text": player.status.text,
-                "checksum": player.status.checksum,
-                "mods": player.status.mods.value,
-                "mode": player.status.mode.value,
-                "beatmap_id": player.status.beatmap_id,
-            }
-        })
+        json.dumps(user_dict)
+    )
+
+    session.queue.submit(
+        "stats_update",
+        player.id
     )
 
     if not session.manager.spectating:
