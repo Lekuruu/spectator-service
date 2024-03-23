@@ -24,7 +24,8 @@ def on_message(sender: Player, message: str, target: Union[Player, Channel]):
     session.queue.submit(
         "message",
         server=session.game.server,
-        sender=sender.name,
+        sender_id=sender.id,
+        sender_name=sender.name,
         message=message,
         target=session.manager.spectating.name
     )
