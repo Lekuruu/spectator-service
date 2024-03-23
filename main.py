@@ -16,7 +16,7 @@ logging.basicConfig(
 
 def load_config() -> Optional[dict]:
     parser = argparse.ArgumentParser(
-        prog="osu!recorder", description="Spectate and record replay files."
+        prog="osu! spectator service"
     )
 
     parser.add_argument(
