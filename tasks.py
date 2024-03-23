@@ -29,6 +29,7 @@ def stats_update(player: Player):
         "id": player.id,
         "name": player.name,
         "country": player.country_code,
+        "server": session.game.server,
         "stats": {
             "rscore": player.rscore,
             "tscore": player.tscore,
@@ -48,13 +49,14 @@ def stats_update(player: Player):
     }
 
     session.redis.set(
-        f"player:{player.id}",
+        f"players:{session.game.server}:{player.id}",
         json.dumps(user_dict)
     )
 
     session.queue.submit(
         "stats_update",
-        player.id
+        player.id,
+        session.game.server
     )
 
     if not session.manager.spectating:
