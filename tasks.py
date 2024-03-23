@@ -22,6 +22,8 @@ def user_logout(player: Player):
 
 @session.game.events.register(ServerPackets.USER_STATS)
 def stats_update(player: Player):
+    print(player)
+
     if not player:
         return
 
@@ -101,7 +103,7 @@ def event_listener():
     if name not in session.api_queue.events:
         return
 
-    session.api_queue.logger.info(
+    session.api_queue.logger.debug(
         f'Got event for "{name}" with {args} and {kwargs}'
     )
 
@@ -121,8 +123,8 @@ def spectator_controller():
         players = [
             p for p in session.game.bancho.players
             if (p.rank != 0 and p.rank < 1000) and
-            (p.id not in spectating) and
-            (p.status.action != StatusAction.Afk)
+               (p.id not in spectating) and
+               (p.status.action != StatusAction.Afk)
         ]
         players.sort(key=lambda x: x.rank)
         player = players[0]
