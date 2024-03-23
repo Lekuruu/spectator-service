@@ -69,6 +69,15 @@ def stats_update(player: Player):
 def spectator_controller():
     if session.manager.spectating:
         # We are already spectating someone
+        if not session.game.bancho.connected:
+            # The client disconnected from bancho
+            session.redis.lrem(
+                "spectating", 1,
+                str(session.manager.spectating.id)
+            )
+            session.game.bancho.spectating = None
+            return
+
         session.manager.spectating.request_stats()
         return
 
