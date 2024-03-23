@@ -22,8 +22,6 @@ def user_logout(player: Player):
 
 @session.game.events.register(ServerPackets.USER_STATS)
 def stats_update(player: Player):
-    print(player)
-
     if not player:
         return
 
