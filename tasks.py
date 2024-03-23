@@ -1,6 +1,7 @@
 
 from osu.bancho.constants import ServerPackets, StatusAction
-from osu.objects import Player
+from osu.objects import Player, Channel
+from typing import Union
 from copy import copy
 
 import session
@@ -13,6 +14,18 @@ def frames(action, frames, score_frame, extra):
         action,
         extra,
         score_frame
+    )
+
+@session.game.events.register(ServerPackets.SEND_MESSAGE)
+def on_message(sender: Player, message: str, target: Union[Player, Channel]):
+    if target.name != '#spectator':
+        return
+
+    session.queue.submit(
+        "spectator_message",
+        sender=sender.name,
+        message=message,
+        target=session.manager.spectating.name
     )
 
 @session.game.events.register(ServerPackets.USER_LOGOUT)
