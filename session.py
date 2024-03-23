@@ -13,6 +13,7 @@ config: Optional[dict] = None
 game: Optional["Game"] = None
 redis: Optional["Redis"] = None
 queue: Optional["EventQueue"] = None
+api_queue: Optional["EventQueue"] = None
 manager: Optional["ReplayManager"] = None
 
 logger = logging.getLogger("spectator")

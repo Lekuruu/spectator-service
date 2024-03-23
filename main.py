@@ -91,6 +91,11 @@ def main():
         session.redis
     )
 
+    session.api_queue = EventQueue(
+        "api",
+        session.redis
+    )
+
     session.manager = ReplayManager(session.game)
     session.logger.info("Loading tasks...")
 
