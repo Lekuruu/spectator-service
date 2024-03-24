@@ -158,12 +158,12 @@ class Score:
                 "name": self.player.name,
                 "country": self.player.country,
                 "status": {
-                    "action": self.player.status.action.value,
-                    "text": self.player.status.text,
-                    "checksum": self.player.status.checksum,
-                    "mods": self.player.status.mods.value,
-                    "mode": self.player.status.mode.value,
-                    "beatmap_id": self.player.status.beatmap_id
+                    "action": self.status.action.value,
+                    "text": self.status.text,
+                    "checksum": self.status.checksum,
+                    "mods": self.status.mods.value,
+                    "mode": self.status.mode.value,
+                    "beatmap_id": self.status.beatmap_id
                 },
                 "stats": {
                     "rscore": self.player.rscore,
