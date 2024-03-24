@@ -136,7 +136,7 @@ def spectator_controller():
         # Get highest ranked player available
         players = [
             p for p in session.game.bancho.players
-            if (p.rank != 0 and p.rank < 1000) and
+            if (p.rank != 0 and p.rank < 250) and
                (p.id not in spectating) and
                (p.status.action != StatusAction.Afk)
         ]
