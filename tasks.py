@@ -35,6 +35,13 @@ def user_logout(player: Player):
     session.redis.delete(f"stats:{player.id}")
     session.redis.lrem(f"spectating:{session.game.server}", 1, player.id)
 
+    if not session.manager.spectating:
+        return
+
+    if player == session.manager.spectating:
+        session.game.bancho.stop_spectating()
+        session.manager.replay.reset()
+
 @session.game.events.register(ServerPackets.USER_STATS)
 def stats_update(player: Player):
     if not player:
@@ -164,6 +171,7 @@ def spectator_controller():
                 session.manager.spectating.id
             )
             session.game.bancho.spectating = None
+            session.manager.replay.reset()
             return
 
         session.manager.spectating.request_stats()
