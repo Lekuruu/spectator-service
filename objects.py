@@ -132,6 +132,7 @@ class Score:
                 "cKatu": self.data.cKatu,
                 "cMiss": self.data.cMiss,
                 "total_score": self.data.total_score,
+                "total_hits": self.data.total_hits,
                 "max_combo": self.data.max_combo,
                 "perfect": self.data.perfect,
                 "mods": self.mods.value,
