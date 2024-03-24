@@ -1,6 +1,6 @@
 
 from osu.objects import ScoreFrame, Player, Status
-from osu.bancho.constants import Mods
+from osu.bancho.constants import Mods, Mode
 
 from datetime import datetime
 from typing import List
@@ -32,13 +32,59 @@ class Score:
 
     @property
     def accuracy(self) -> float:
-        if self.data.total_hits <= 0:
-            return 1.0
+        if self.total_hits <= 0:
+            return 0.0
+
+        if self.mode == Mode.Osu:
+            return (
+                100.0 * ((self.data.c300 * 300) + (self.data.c100 * 100) + (self.data.c50 * 50))
+                / (self.total_hits * 300)
+            )
+
+        elif self.mode == Mode.Taiko:
+            return (
+                100.0 * ((self.data.c100 * 0.5) + self.data.c300) / self.total_hits
+            )
+
+        elif self.mode == Mode.CatchTheBeat:
+            return (
+                100.0 * (self.data.c300 + self.data.c100 + self.data.c50) / self.total_hits
+            )
+
+        if Mods.ScoreV2 in self.mods:
+            return (
+                100.0 * (
+                    (self.data.c50 * 50.0) +
+                    (self.data.c100 * 100.0) +
+                    (self.data.cKatu * 200.0) +
+                    (self.data.c300 * 300.0) +
+                    (self.data.cGeki * 305.0)
+                )
+                / (self.total_hits * 305.0)
+            )
 
         return (
-            (self.data.c50 * 50 + self.data.c100 * 100 + self.data.c300 * 300)
-            / self.data.total_hits * 100
+            100.0 * (
+                (self.data.c50 * 50.0) +
+                (self.data.c100 * 100.0) +
+                (self.data.cKatu * 200.0) +
+                ((self.data.c300 + self.data.cGeki) * 300.0)
+            )
+            / (self.total_hits * 300.0)
         )
+
+    @property
+    def total_hits(self) -> int:
+        if self.mode == Mode.Osu:
+            return self.data.c50 + self.data.c100 + self.data.c300 + self.data.cMiss
+
+        elif self.mode == Mode.Taiko:
+            return self.data.c100 + self.data.c300 + self.data.cMiss
+
+        elif self.mode == Mode.CatchTheBeat:
+            return self.data.c50 + self.data.c100 + self.data.c300 + self.data.cKatu + self.data.cMiss
+
+        return self.data.c50 + self.data.c100 + self.data.c300 + self.data.cGeki + self.data.cKatu + self.data.cMiss
 
     @property
     def grade(self) -> str:
@@ -73,6 +119,10 @@ class Score:
     @property
     def mods(self) -> List[Mods]:
         return self.status.mods
+
+    @property
+    def mode(self) -> Mode:
+        return self.status.mode
 
     @property
     def filename(self) -> str:
